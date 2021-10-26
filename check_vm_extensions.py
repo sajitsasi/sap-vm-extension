@@ -29,7 +29,7 @@ vm_list = compute_client.virtual_machines.list_all()
 column_width = 32
 state_width = 16
 
-print("VM".ljust(column_width+8) + "State".ljust(state_width) + "AEM Extension".ljust(column_width))
+print("VM".ljust(column_width+8) + "State".ljust(state_width) + "SAP Extension".ljust(column_width))
 print("-" * (column_width * 3))
 for vm in vm_list:
     rg = vm.id.split("/")[4]
