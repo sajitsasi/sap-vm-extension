@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "queryName": {
+      "defaultValue": "Count VMs that have the Azure Enhanced Monitoring Extension for SAP",
+      "type": "String",
+      "metadata": {
+        "description": "The name of the shared query."
+      }
+    },
+    "queryCode": {
+      "defaultValue": "resources | where type == 'microsoft.compute/virtualmachines' | where tags.system == 'SAP' or tags.System == 'SAP' | extend JoinID = toupper(id), VMName = tostring(properties.osProfile.computerName), OSType = tostring(properties.storageProfile.osDisk.osType), VMSize = tostring(properties.hardwareProfile.vmSize) | join kind=leftouter( resources | where type == 'microsoft.compute/virtualmachines/extensions' | where name == 'MonitorX64Linux' or name == 'MonitorX64Windows' | extend VMId = toupper(substring(id, 0, indexof(id, '/extensions'))), Extension = name) on $left.JoinID == $right.VMId | summarize SAP_Extension_Present = countif(Extension == 'MonitorX64Linux' or Extension == 'MonitorX64Windows'), SAP_Extension_NOT_Present = countif(Extension != 'MonitorX64Linux' and Extension != 'MonitorX64Windows'), Total_SAP_VM = count()",
+      "type": "String",
+      "metadata": {
+        "description": "The Azure Resource Graph query to be saved to the shared query."
+      }
+    },
+    "queryDescription": {
+      "defaultValue": "This shared query counts all virtual machine resources and summarizes by the OS type.",
+      "type": "String",
+      "metadata": {
+        "description": "The description of the saved Azure Resource Graph query."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ResourceGraph/queries",
+      "apiVersion": "2018-09-01-preview",
+      "name": "[parameters('queryName')]",
+      "location": "global",
+      "properties": {
+        "query": "[parameters('queryCode')]",
+        "description": "[parameters('queryDescription')]"
+      }
+    }
+  ]
+}
